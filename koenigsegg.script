@@ -1,0 +1,123 @@
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+LW = 301;
+LH = 420;
+N = 20;
+DIN = 40;
+FIN = 1.7;
+SW0 = -40;
+SW_SPEED = 4.0;
+SW_W = 85;
+SW_START = 62;
+BASE = 0.86;
+GAIN = 0.14;
+LAG = 6;
+TRAIL = 0.28;
+SETTLE = 220;
+
+px[0] = 0; py[0] = 0; cxp[0] = 150.5; dx[0] = 0; dy[0] = 60; tin[0] = 6;
+img[0] = Image("pieces/p0.png");
+px[1] = 109; py[1] = 15; cxp[1] = 150.5; dx[1] = 0; dy[1] = -90; tin[1] = 36;
+img[1] = Image("pieces/p1.png");
+px[2] = 11; py[2] = 77; cxp[2] = 150.5; dx[2] = 0; dy[2] = -40; tin[2] = 10;
+img[2] = Image("pieces/p2.png");
+px[3] = 94; py[3] = 94; cxp[3] = 150.5; dx[3] = -10.6; dy[3] = -96.0; tin[3] = 24;
+img[3] = Image("pieces/p3.png");
+px[4] = 74; py[4] = 126; cxp[4] = 150.5; dx[4] = 9.1; dy[4] = -92.9; tin[4] = 12;
+img[4] = Image("pieces/p4.png");
+px[5] = 81; py[5] = 168; cxp[5] = 151.0; dx[5] = 2.2; dy[5] = -104.6; tin[5] = 7;
+img[5] = Image("pieces/p5.png");
+px[6] = 88; py[6] = 210; cxp[6] = 151.5; dx[6] = -26.5; dy[6] = 110.3; tin[6] = 9;
+img[6] = Image("pieces/p6.png");
+px[7] = 98; py[7] = 252; cxp[7] = 151.0; dx[7] = -27.8; dy[7] = 107.3; tin[7] = 13;
+img[7] = Image("pieces/p7.png");
+px[8] = 111; py[8] = 294; cxp[8] = 151.5; dx[8] = -25.8; dy[8] = 93.6; tin[8] = 26;
+img[8] = Image("pieces/p8.png");
+px[9] = 116; py[9] = 335; cxp[9] = 150.5; dx[9] = -4.5; dy[9] = 123.1; tin[9] = 34;
+img[9] = Image("pieces/p9.png");
+px[10] = 31; py[10] = 132; cxp[10] = 55.5; dx[10] = -117.4; dy[10] = -31.8; tin[10] = 28;
+img[10] = Image("pieces/p10.png");
+px[11] = 221; py[11] = 130; cxp[11] = 246.0; dx[11] = 147.6; dy[11] = -3.3; tin[11] = 29;
+img[11] = Image("pieces/p11.png");
+px[12] = 35; py[12] = 168; cxp[12] = 61.0; dx[12] = -144.6; dy[12] = -11.1; tin[12] = 20;
+img[12] = Image("pieces/p12.png");
+px[13] = 216; py[13] = 174; cxp[13] = 240.5; dx[13] = 168.6; dy[13] = -23.9; tin[13] = 18;
+img[13] = Image("pieces/p13.png");
+px[14] = 45; py[14] = 211; cxp[14] = 69.5; dx[14] = -161.5; dy[14] = -1.2; tin[14] = 15;
+img[14] = Image("pieces/p14.png");
+px[15] = 210; py[15] = 210; cxp[15] = 233.0; dx[15] = 118.7; dy[15] = -7.8; tin[15] = 17;
+img[15] = Image("pieces/p15.png");
+px[16] = 60; py[16] = 255; cxp[16] = 81.5; dx[16] = -128.5; dy[16] = 35.4; tin[16] = 23;
+img[16] = Image("pieces/p16.png");
+px[17] = 199; py[17] = 251; cxp[17] = 220.0; dx[17] = 120.8; dy[17] = 25.3; tin[17] = 21;
+img[17] = Image("pieces/p17.png");
+px[18] = 83; py[18] = 300; cxp[18] = 100.0; dx[18] = -148.3; dy[18] = 32.4; tin[18] = 32;
+img[18] = Image("pieces/p18.png");
+px[19] = 186; py[19] = 301; cxp[19] = 202.0; dx[19] = 142.9; dy[19] = 20.0; tin[19] = 31;
+img[19] = Image("pieces/p19.png");
+
+ox = Window.GetWidth() / 2 - LW / 2;
+oy = Window.GetHeight() / 2 - LH / 2;
+
+for (n = 0; n < N; n++) {
+    spr[n] = Sprite(img[n]);
+    spr[n].SetOpacity(0);
+    spr[n].SetPosition(ox + px[n], oy + py[n], 10);
+    trl[n] = Sprite(img[n]);
+    trl[n].SetOpacity(0);
+    trl[n].SetPosition(ox + px[n], oy + py[n], 9);
+}
+
+tick = 0;
+
+fun clamp01(v) {
+    return Math.Min(Math.Max(v, 0), 1);
+}
+
+fun offset(t, n) {
+    u = clamp01((t - tin[n]) / DIN);
+    v = 1 - u;
+    return v * v * v * v * v * FIN;
+}
+
+fun alpha(t, n) {
+    u = clamp01((t - tin[n]) / DIN);
+    v = 1 - u;
+    return 1 - v * v * v;
+}
+
+fun bright(t, n) {
+    sx = SW0 + (t - SW_START) * SW_SPEED;
+    if (sx >= cxp[n]) {
+        b = 1;
+    } else {
+        b = 1 - (cxp[n] - sx) / SW_W;
+        if (b < 0) b = 0;
+    }
+    return BASE + GAIN * b;
+}
+
+fun refresh() {
+    if (tick < SETTLE) {
+        t = tick;
+        for (n = 0; n < N; n++) {
+            o = offset(t, n);
+            spr[n].SetPosition(ox + px[n] + dx[n] * o, oy + py[n] + dy[n] * o, 10);
+            spr[n].SetOpacity(alpha(t, n) * bright(t, n));
+            tt = t - LAG;
+            if (tt < 0) tt = 0;
+            o2 = offset(tt, n);
+            moved = o2 - o;
+            if (moved < 0) moved = 0 - moved;
+            if (moved > 0.02) {
+                trl[n].SetPosition(ox + px[n] + dx[n] * o2, oy + py[n] + dy[n] * o2, 9);
+                trl[n].SetOpacity(alpha(tt, n) * TRAIL);
+            } else {
+                trl[n].SetOpacity(0);
+            }
+        }
+        tick++;
+    }
+}
+Plymouth.SetRefreshFunction(refresh);

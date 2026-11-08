@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Koenigsegg
+Description=Koenigsegg shield that breaks apart piece by piece
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/koenigsegg
+ScriptFile=/usr/share/plymouth/themes/koenigsegg/koenigsegg.script
